@@ -1,4 +1,0 @@
-qrcode[pil]
-python-barcode
-pillow
-pyinstaller
