@@ -403,8 +403,8 @@ const Inventory = () => {
                 padding: 20px;
               }
               .barcode-container img { 
-                max-width: 400px;
-                width: 100%;
+                width: 10cm;
+                max-width: 10cm;
                 height: auto;
                 display: block;
                 margin: 0 auto;
@@ -438,6 +438,11 @@ const Inventory = () => {
                 }
                 .barcode-container {
                   padding: 0;
+                }
+                .barcode-container img {
+                  width: 10cm;
+                  max-width: 10cm;
+                }
                 }
               }
             </style>
