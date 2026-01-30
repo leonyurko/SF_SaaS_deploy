@@ -381,55 +381,74 @@ const Inventory = () => {
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Print: ${item.name}</title>
+            <title>Print Barcode: ${item.barcode}</title>
             <style>
-              @media print { @page { margin: 0.5in; } }
-              body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-              .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-              .item-name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-              .item-details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-              .detail-row { padding: 10px; border-bottom: 1px solid #ddd; }
-              .detail-label { font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; }
-              .detail-value { font-size: 16px; margin-top: 5px; }
-              .codes { display: flex; justify-content: center; align-items: center; margin-top: 30px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; }
-              .code-item { text-align: center; }
-              .code-item img { max-width: 200px; height: auto; }
-              .code-label { font-weight: bold; margin-top: 10px; font-size: 14px; }
-              .no-print { margin-top: 20px; text-align: center; }
-              @media print { .no-print { display: none; } }
+              @media print { 
+                @page { 
+                  margin: 0.5in; 
+                  size: auto;
+                } 
+              }
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+              }
+              .barcode-container { 
+                text-align: center;
+                padding: 20px;
+              }
+              .barcode-container img { 
+                max-width: 400px;
+                width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+              }
+              .barcode-label { 
+                font-weight: bold;
+                margin-top: 15px;
+                font-size: 18px;
+                letter-spacing: 2px;
+              }
+              .no-print { 
+                margin-top: 30px;
+                text-align: center;
+              }
+              .no-print button {
+                padding: 12px 24px;
+                cursor: pointer;
+                background-color: #000;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 14px;
+              }
+              .no-print button:hover {
+                background-color: #333;
+              }
+              @media print { 
+                .no-print { display: none; }
+                body {
+                  display: block;
+                }
+                .barcode-container {
+                  padding: 0;
+                }
+              }
             </style>
           </head>
           <body>
-            <div class="header">
-              <h1>Inventory Item Details</h1>
-            </div>
-            <div class="item-name">${item.name}</div>
-            <div class="item-details">
-              <div class="detail-row">
-                <div class="detail-label">Category</div>
-                <div class="detail-value">${item.category_name || 'N/A'}</div>
+            <div class="barcode-container">
+              <img src="${item.barcode_image_url}" alt="Barcode" />
+              <div class="barcode-label">${item.barcode}</div>
+              <div class="no-print">
+                <button onclick="window.print()">Print Barcode</button>
               </div>
-              <div class="detail-row">
-                <div class="detail-label">Warehouse</div>
-                <div class="detail-value">${item.warehouse_name || 'N/A'}</div>
-              </div>
-               <div class="detail-row">
-                <div class="detail-label">Location</div>
-                <div class="detail-value">${item.location || 'N/A'}</div>
-              </div>
-              <div class="detail-row" style="grid-column: span 2;">
-                <div class="detail-label">Description</div>
-                <div class="detail-value">${item.description || 'No description'}</div>
-              </div>
-            </div>
-            <div class="codes">
-              <div class="code-item">
-                <img src="${item.barcode_image_url}" alt="Barcode" />
-                <div class="code-label">${item.barcode}</div>
-              </div>
-            </div>
-            <div class="no-print">
-              <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">Print Page</button>
             </div>
           </body>
           </html>
