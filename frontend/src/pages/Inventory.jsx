@@ -378,86 +378,215 @@ const Inventory = () => {
   const printItem = (item) => {
     const printWindow = window.open('', '_blank');
     const printContent = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Print Barcode: ${item.barcode}</title>
-            <style>
-              @media print { 
-                @page { 
-                  margin: 0.5in; 
-                  size: auto;
-                } 
-              }
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-              }
-              .barcode-container { 
-                text-align: center;
-                padding: 20px;
-              }
-              .barcode-container img { 
-                width: 10cm;
-                max-width: 10cm;
-                height: auto;
-                display: block;
-                margin: 0 auto;
-              }
-              .barcode-label { 
-                font-weight: bold;
-                margin-top: 15px;
-                font-size: 18px;
-                letter-spacing: 2px;
-              }
-              .no-print { 
-                margin-top: 30px;
-                text-align: center;
-              }
-              .no-print button {
-                padding: 12px 24px;
-                cursor: pointer;
-                background-color: #000;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-              }
-              .no-print button:hover {
-                background-color: #333;
-              }
-              @media print { 
-                .no-print { display: none; }
-                body {
-                  display: block;
-                }
-                .barcode-container {
-                  padding: 0;
-                }
-                .barcode-container img {
-                  width: 10cm;
-                  max-width: 10cm;
-                }
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="barcode-container">
-              <img src="${item.barcode_image_url}" alt="Barcode" />
-              <div class="barcode-label">${item.barcode}</div>
-              <div class="no-print">
-                <button onclick="window.print()">Print Barcode</button>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Print Barcode: ${item.barcode}</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+          }
+          .no-print {
+            width: 100%;
+            max-width: 480px;
+          }
+          h2 {
+            font-size: 18px;
+            color: #111;
+            margin-bottom: 20px;
+          }
+          .controls {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+          }
+          .control-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+          }
+          .control-group {
+            flex: 1;
+          }
+          .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+          }
+          .control-group input[type="number"] {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+            color: #111;
+          }
+          .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: #000;
+          }
+          .unit-toggle {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+          }
+          .unit-toggle button {
+            flex: 1;
+            padding: 9px 0;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            color: #888;
+          }
+          .unit-toggle button.active {
+            background: #111;
+            color: white;
+          }
+          .preview-box {
+            background: white;
+            border-radius: 8px;
+            padding: 24px 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            text-align: center;
+          }
+          .preview-box .preview-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+          }
+          .preview-box img {
+            display: block;
+            margin: 0 auto;
+            height: auto;
+            max-width: 100%;
+          }
+          .barcode-number {
+            font-weight: bold;
+            margin-top: 12px;
+            font-size: 15px;
+            letter-spacing: 2px;
+            color: #222;
+          }
+          .print-btn {
+            width: 100%;
+            padding: 13px;
+            background: #111;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+          .print-btn:hover { background: #333; }
+          /* Print output */
+          .print-only { display: none; }
+          @media print {
+            @page { margin: 0; size: auto; }
+            body { background: white; padding: 0; display: block; }
+            .no-print { display: none !important; }
+            .print-only {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            .print-barcode-wrapper { text-align: center; }
+            .print-barcode-wrapper img { display: block; margin: 0 auto; height: auto; }
+            .print-barcode-number {
+              font-family: Arial, sans-serif;
+              font-weight: bold;
+              margin-top: 10px;
+              font-size: 16px;
+              letter-spacing: 2px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <h2>Print Barcode Label</h2>
+          <div class="controls">
+            <div class="control-row">
+              <div class="control-group">
+                <label for="bWidth">Width</label>
+                <input type="number" id="bWidth" value="10" min="1" max="200" step="0.5" oninput="updatePreview()" />
+              </div>
+              <div class="control-group">
+                <label for="bHeight">Height</label>
+                <input type="number" id="bHeight" value="" min="1" max="200" step="0.5" placeholder="Auto" oninput="updatePreview()" />
+              </div>
+              <div class="control-group">
+                <label>Unit</label>
+                <div class="unit-toggle">
+                  <button id="btn-cm" class="active" onclick="setUnit('cm')">cm</button>
+                  <button id="btn-mm" onclick="setUnit('mm')">mm</button>
+                </div>
               </div>
             </div>
-          </body>
-          </html>
-        `;
+          </div>
+          <div class="preview-box">
+            <div class="preview-label">Preview</div>
+            <img id="previewImg" src="${item.barcode_image_url}" alt="Barcode" style="width:10cm;" />
+            <div class="barcode-number">${item.barcode}</div>
+          </div>
+          <button class="print-btn" onclick="window.print()">Print Barcode</button>
+        </div>
+        <div class="print-only">
+          <div class="print-barcode-wrapper">
+            <img id="printImg" src="${item.barcode_image_url}" alt="Barcode" style="width:10cm;" />
+            <div class="print-barcode-number">${item.barcode}</div>
+          </div>
+        </div>
+        <script>
+          var currentUnit = 'cm';
+          function setUnit(unit) {
+            currentUnit = unit;
+            document.getElementById('btn-cm').classList.toggle('active', unit === 'cm');
+            document.getElementById('btn-mm').classList.toggle('active', unit === 'mm');
+            updatePreview();
+          }
+          function updatePreview() {
+            var w = parseFloat(document.getElementById('bWidth').value);
+            var hVal = document.getElementById('bHeight').value;
+            var previewImg = document.getElementById('previewImg');
+            var printImg = document.getElementById('printImg');
+            if (!isNaN(w) && w > 0) {
+              previewImg.style.width = w + currentUnit;
+              printImg.style.width = w + currentUnit;
+            }
+            var h = parseFloat(hVal);
+            if (hVal && !isNaN(h) && h > 0) {
+              previewImg.style.height = h + currentUnit;
+              printImg.style.height = h + currentUnit;
+            } else {
+              previewImg.style.height = 'auto';
+              printImg.style.height = 'auto';
+            }
+          }
+        </script>
+      </body>
+      </html>
+    `;
     printWindow.document.write(printContent);
     printWindow.document.close();
   };
