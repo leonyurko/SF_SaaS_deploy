@@ -377,6 +377,12 @@ const Inventory = () => {
 
   const printItem = (item) => {
     const printWindow = window.open('', '_blank');
+    // Make URL absolute so it resolves correctly in the popup (base URL is about:blank)
+    const barcodeUrl = item.barcode_image_url
+      ? (item.barcode_image_url.startsWith('http')
+          ? item.barcode_image_url
+          : window.location.origin + item.barcode_image_url)
+      : '';
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -501,15 +507,10 @@ const Inventory = () => {
           /* Print output */
           .print-only { display: none; }
           @media print {
-            @page { margin: 0; size: auto; }
+            @page { margin: 3mm; }
             body { background: white; padding: 0; display: block; }
             .no-print { display: none !important; }
-            .print-only {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-            }
+            .print-only { display: block; text-align: center; }
             .print-barcode-wrapper { text-align: center; }
             .print-barcode-wrapper img { display: block; margin: 0 auto; height: auto; }
             .print-barcode-number {
@@ -546,18 +547,34 @@ const Inventory = () => {
           </div>
           <div class="preview-box">
             <div class="preview-label">Preview</div>
-            <img id="previewImg" src="${item.barcode_image_url}" alt="Barcode" style="width:10cm;" />
+            <img id="previewImg" src="${barcodeUrl}" alt="Barcode" style="width:10cm;" />
             <div class="barcode-number">${item.barcode}</div>
           </div>
-          <button class="print-btn" onclick="window.print()">Print Barcode</button>
+          <button id="printBtn" class="print-btn" disabled onclick="window.print()">Loading...</button>
         </div>
         <div class="print-only">
           <div class="print-barcode-wrapper">
-            <img id="printImg" src="${item.barcode_image_url}" alt="Barcode" style="width:10cm;" />
+            <img id="printImg" src="${barcodeUrl}" alt="Barcode" style="width:10cm;" />
             <div class="print-barcode-number">${item.barcode}</div>
           </div>
         </div>
         <script>
+          // Enable print button only after image has loaded
+          var printImg = document.getElementById('printImg');
+          var printBtn = document.getElementById('printBtn');
+          function onImageReady() {
+            printBtn.disabled = false;
+            printBtn.textContent = 'Print Barcode';
+          }
+          if (printImg.complete && printImg.naturalWidth > 0) {
+            onImageReady();
+          } else {
+            printImg.onload = onImageReady;
+            printImg.onerror = function() {
+              printBtn.disabled = false;
+              printBtn.textContent = 'Print Barcode';
+            };
+          }
           var currentUnit = 'cm';
           function setUnit(unit) {
             currentUnit = unit;
