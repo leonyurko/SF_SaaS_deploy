@@ -376,236 +376,174 @@ const Inventory = () => {
 
 
   const printItem = (item) => {
-    const printWindow = window.open('', '_blank');
-    // Make URL absolute so it resolves correctly in the popup (base URL is about:blank)
     const barcodeUrl = item.barcode_image_url
       ? (item.barcode_image_url.startsWith('http')
           ? item.barcode_image_url
           : window.location.origin + item.barcode_image_url)
       : '';
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Print Barcode: ${item.barcode}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 24px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-          }
-          .no-print {
-            width: 100%;
-            max-width: 480px;
-          }
-          h2 {
-            font-size: 18px;
-            color: #111;
-            margin-bottom: 20px;
-          }
-          .controls {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-            margin-bottom: 16px;
-          }
-          .control-row {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-          }
-          .control-group {
-            flex: 1;
-          }
-          .control-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-          }
-          .control-group input[type="number"] {
-            width: 100%;
-            padding: 9px 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 15px;
-            color: #111;
-          }
-          .control-group input[type="number"]:focus {
-            outline: none;
-            border-color: #000;
-          }
-          .unit-toggle {
-            display: flex;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-          }
-          .unit-toggle button {
-            flex: 1;
-            padding: 9px 0;
-            border: none;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            color: #888;
-          }
-          .unit-toggle button.active {
-            background: #111;
-            color: white;
-          }
-          .preview-box {
-            background: white;
-            border-radius: 8px;
-            padding: 24px 20px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-            margin-bottom: 16px;
-            text-align: center;
-          }
-          .preview-box .preview-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-          }
-          .preview-box img {
-            display: block;
-            margin: 0 auto;
-            height: auto;
-            max-width: 100%;
-          }
-          .barcode-number {
-            font-weight: bold;
-            margin-top: 12px;
-            font-size: 15px;
-            letter-spacing: 2px;
-            color: #222;
-          }
-          .print-btn {
-            width: 100%;
-            padding: 13px;
-            background: #111;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-          .print-btn:hover { background: #333; }
-          /* Print output */
-          .print-only { display: none; }
-          @media print {
-            @page { size: 62mm auto; margin: 2mm; }
-            body { background: white; padding: 0; display: block; }
-            .no-print { display: none !important; }
-            .print-only { display: block; text-align: center; }
-            .print-barcode-wrapper { text-align: center; }
-            .print-barcode-wrapper img { display: block; margin: 0 auto; height: auto; }
-            .print-barcode-number {
-              font-family: Arial, sans-serif;
-              font-weight: bold;
-              margin-top: 10px;
-              font-size: 16px;
-              letter-spacing: 2px;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="no-print">
-          <h2>Print Barcode Label</h2>
-          <div class="controls">
-            <div class="control-row">
-              <div class="control-group">
-                <label for="bWidth">Width</label>
-                <input type="number" id="bWidth" value="58" min="1" max="200" step="0.5" oninput="updatePreview()" />
+
+    // Remove any existing overlay from a previous call
+    const prevOverlay = document.getElementById('__bpo');
+    const prevStyle = document.getElementById('__bpo_style');
+    if (prevOverlay) prevOverlay.remove();
+    if (prevStyle) prevStyle.remove();
+
+    // Inject print styles: hide the React app, show only the overlay
+    const style = document.createElement('style');
+    style.id = '__bpo_style';
+    style.textContent = `
+      #__bpo {
+        position: fixed; inset: 0; background: #f5f5f5; z-index: 9999;
+        overflow-y: auto; font-family: Arial, sans-serif;
+        display: flex; justify-content: center; padding: 24px;
+        box-sizing: border-box;
+      }
+      #__bpo .__bpo_inner { width: 100%; max-width: 480px; }
+      #__bpo .__bpo_card {
+        background: white; border-radius: 8px; padding: 20px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.1); margin-bottom: 16px;
+      }
+      #__bpo .__bpo_row { display: flex; gap: 12px; align-items: flex-end; }
+      #__bpo .__bpo_group { flex: 1; }
+      #__bpo .__bpo_group label {
+        display: block; font-size: 12px; font-weight: 700; color: #666;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+      }
+      #__bpo .__bpo_group input {
+        width: 100%; padding: 9px 10px; border: 1px solid #ddd;
+        border-radius: 5px; font-size: 15px; box-sizing: border-box;
+      }
+      #__bpo .__bpo_toggle { display: flex; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
+      #__bpo .__bpo_toggle button {
+        flex: 1; padding: 9px 0; border: none; cursor: pointer;
+        font-size: 14px; font-weight: 700;
+      }
+      #__bpo .__bpo_print_btn {
+        width: 100%; padding: 13px; border: none; border-radius: 6px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+      }
+      #__bpo .__bpo_print_only { display: none; }
+      @media print {
+        @page { size: 62mm auto; margin: 2mm; }
+        #root { display: none !important; }
+        #__bpo {
+          position: static !important; background: white !important;
+          display: block !important; padding: 0 !important; overflow: visible !important;
+        }
+        #__bpo .__bpo_ui { display: none !important; }
+        #__bpo .__bpo_print_only {
+          display: block !important; text-align: center;
+        }
+        #__bpo .__bpo_print_only img { display: block; margin: 0 auto; height: auto; }
+        #__bpo .__bpo_print_only .__bpo_num {
+          font-family: Arial, sans-serif; font-weight: bold;
+          margin-top: 10px; font-size: 16px; letter-spacing: 2px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Build overlay DOM
+    const overlay = document.createElement('div');
+    overlay.id = '__bpo';
+    overlay.innerHTML = `
+      <div class="__bpo_inner">
+        <div class="__bpo_ui">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 style="font-size:18px;color:#111;margin:0;">Print Barcode Label</h2>
+            <button id="__bpo_close" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666;line-height:1;">&#x2715;</button>
+          </div>
+          <div class="__bpo_card">
+            <div class="__bpo_row">
+              <div class="__bpo_group">
+                <label>Width</label>
+                <input type="number" id="__bpo_w" value="58" min="1" max="200" step="0.5" />
               </div>
-              <div class="control-group">
-                <label for="bHeight">Height</label>
-                <input type="number" id="bHeight" value="" min="1" max="200" step="0.5" placeholder="Auto" oninput="updatePreview()" />
+              <div class="__bpo_group">
+                <label>Height</label>
+                <input type="number" id="__bpo_h" value="" min="1" max="200" step="0.5" placeholder="Auto" />
               </div>
-              <div class="control-group">
+              <div class="__bpo_group">
                 <label>Unit</label>
-                <div class="unit-toggle">
-                  <button id="btn-cm" onclick="setUnit('cm')">cm</button>
-                  <button id="btn-mm" class="active" onclick="setUnit('mm')">mm</button>
+                <div class="__bpo_toggle">
+                  <button id="__bpo_cm" style="background:white;color:#888;">cm</button>
+                  <button id="__bpo_mm" style="background:#111;color:white;">mm</button>
                 </div>
               </div>
             </div>
           </div>
-          <div class="preview-box">
-            <div class="preview-label">Preview</div>
-            <img id="previewImg" src="${barcodeUrl}" alt="Barcode" style="width:58mm;" />
-            <div class="barcode-number">${item.barcode}</div>
+          <div class="__bpo_card" style="text-align:center;">
+            <div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Preview</div>
+            <img id="__bpo_prev" src="${barcodeUrl}" alt="Barcode" style="display:block;margin:0 auto;width:58mm;height:auto;max-width:100%;" />
+            <div style="font-weight:bold;margin-top:12px;font-size:15px;letter-spacing:2px;color:#222;">${item.barcode}</div>
           </div>
-          <button id="printBtn" class="print-btn" disabled onclick="window.print()">Loading...</button>
+          <button id="__bpo_btn" disabled class="__bpo_print_btn" style="background:#ccc;color:white;cursor:not-allowed;">Loading...</button>
         </div>
-        <div class="print-only">
-          <div class="print-barcode-wrapper">
-            <img id="printImg" src="${barcodeUrl}" alt="Barcode" style="width:58mm;" />
-            <div class="print-barcode-number">${item.barcode}</div>
-          </div>
+        <div class="__bpo_print_only">
+          <img id="__bpo_pimg" src="${barcodeUrl}" alt="Barcode" style="width:58mm;height:auto;" />
+          <div class="__bpo_num">${item.barcode}</div>
         </div>
-        <script>
-          // Enable print button only after image has loaded
-          var printImg = document.getElementById('printImg');
-          var printBtn = document.getElementById('printBtn');
-          function onImageReady() {
-            printBtn.disabled = false;
-            printBtn.textContent = 'Print Barcode';
-          }
-          if (printImg.complete && printImg.naturalWidth > 0) {
-            onImageReady();
-          } else {
-            printImg.onload = onImageReady;
-            printImg.onerror = function() {
-              printBtn.disabled = false;
-              printBtn.textContent = 'Print Barcode';
-            };
-          }
-          var currentUnit = 'mm';
-          function setUnit(unit) {
-            currentUnit = unit;
-            document.getElementById('btn-cm').classList.toggle('active', unit === 'cm');
-            document.getElementById('btn-mm').classList.toggle('active', unit === 'mm');
-            updatePreview();
-          }
-          function updatePreview() {
-            var w = parseFloat(document.getElementById('bWidth').value);
-            var hVal = document.getElementById('bHeight').value;
-            var previewImg = document.getElementById('previewImg');
-            var printImg = document.getElementById('printImg');
-            if (!isNaN(w) && w > 0) {
-              previewImg.style.width = w + currentUnit;
-              printImg.style.width = w + currentUnit;
-            }
-            var h = parseFloat(hVal);
-            if (hVal && !isNaN(h) && h > 0) {
-              previewImg.style.height = h + currentUnit;
-              printImg.style.height = h + currentUnit;
-            } else {
-              previewImg.style.height = 'auto';
-              printImg.style.height = 'auto';
-            }
-          }
-        </script>
-      </body>
-      </html>
+      </div>
     `;
-    printWindow.document.write(printContent);
-    printWindow.document.close();
+    document.body.appendChild(overlay);
+
+    const pimg = document.getElementById('__bpo_pimg');
+    const btn = document.getElementById('__bpo_btn');
+    let unit = 'mm';
+
+    function cleanup() {
+      const o = document.getElementById('__bpo');
+      const s = document.getElementById('__bpo_style');
+      if (o) o.remove();
+      if (s) s.remove();
+    }
+
+    function updatePreview() {
+      const w = parseFloat(document.getElementById('__bpo_w').value);
+      const hVal = document.getElementById('__bpo_h').value;
+      const prev = document.getElementById('__bpo_prev');
+      const pi = document.getElementById('__bpo_pimg');
+      if (!isNaN(w) && w > 0) { prev.style.width = w + unit; pi.style.width = w + unit; }
+      const h = parseFloat(hVal);
+      if (hVal && !isNaN(h) && h > 0) { prev.style.height = h + unit; pi.style.height = h + unit; }
+      else { prev.style.height = 'auto'; pi.style.height = 'auto'; }
+    }
+
+    function setUnit(u) {
+      unit = u;
+      document.getElementById('__bpo_cm').style.background = u === 'cm' ? '#111' : 'white';
+      document.getElementById('__bpo_cm').style.color = u === 'cm' ? 'white' : '#888';
+      document.getElementById('__bpo_mm').style.background = u === 'mm' ? '#111' : 'white';
+      document.getElementById('__bpo_mm').style.color = u === 'mm' ? 'white' : '#888';
+      updatePreview();
+    }
+
+    document.getElementById('__bpo_close').addEventListener('click', cleanup);
+    document.getElementById('__bpo_cm').addEventListener('click', () => setUnit('cm'));
+    document.getElementById('__bpo_mm').addEventListener('click', () => setUnit('mm'));
+    document.getElementById('__bpo_w').addEventListener('input', updatePreview);
+    document.getElementById('__bpo_h').addEventListener('input', updatePreview);
+    btn.addEventListener('click', () => window.print());
+
+    // Enable button only after image is loaded
+    function onReady() {
+      btn.disabled = false;
+      btn.style.background = '#111';
+      btn.style.cursor = 'pointer';
+      btn.textContent = 'Print Barcode';
+    }
+    if (pimg.complete && pimg.naturalWidth > 0) {
+      onReady();
+    } else {
+      pimg.onload = onReady;
+      pimg.onerror = onReady;
+    }
+
+    // Auto-close overlay after printing
+    window.addEventListener('afterprint', function once() {
+      window.removeEventListener('afterprint', once);
+      cleanup();
+    });
   };
 
   const getStatusBadge = (status) => {
