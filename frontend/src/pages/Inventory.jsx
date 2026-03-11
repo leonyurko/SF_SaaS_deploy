@@ -415,9 +415,10 @@ const Inventory = () => {
         position: absolute;
         top: 0; left: 0;
         padding: 2mm;
+        text-align: left;
       }
       .print-only img { display: block; height: auto; }
-      .print-only .barcode-num { font-family: Arial, sans-serif; font-weight: bold; margin-top: 6px; font-size: 14px; letter-spacing: 2px; }
+      .print-only .barcode-num { font-family: Arial, sans-serif; font-weight: bold; margin-top: 6px; font-size: 14px; letter-spacing: 2px; text-align: left; }
     }
   </style>
 </head>
