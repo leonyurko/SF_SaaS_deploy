@@ -407,12 +407,17 @@ const Inventory = () => {
     .print-btn { width: 100%; padding: 13px; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .print-only { display: none; }
     @media print {
-      @page { size: 62mm auto; margin: 2mm; }
-      body { background: white; padding: 0; }
+      @page { margin: 0; }
+      body { margin: 0; padding: 0; background: white; }
       .wrap { display: none; }
-      .print-only { display: block; text-align: center; }
-      .print-only img { display: block; margin: 0 auto; height: auto; }
-      .print-only .barcode-num { font-family: Arial, sans-serif; font-weight: bold; margin-top: 10px; font-size: 16px; letter-spacing: 2px; }
+      .print-only {
+        display: block;
+        position: absolute;
+        top: 0; left: 0;
+        padding: 2mm;
+      }
+      .print-only img { display: block; height: auto; }
+      .print-only .barcode-num { font-family: Arial, sans-serif; font-weight: bold; margin-top: 6px; font-size: 14px; letter-spacing: 2px; }
     }
   </style>
 </head>
