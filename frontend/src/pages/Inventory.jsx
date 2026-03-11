@@ -507,7 +507,7 @@ const Inventory = () => {
           /* Print output */
           .print-only { display: none; }
           @media print {
-            @page { margin: 3mm; }
+            @page { size: 62mm auto; margin: 2mm; }
             body { background: white; padding: 0; display: block; }
             .no-print { display: none !important; }
             .print-only { display: block; text-align: center; }
@@ -530,7 +530,7 @@ const Inventory = () => {
             <div class="control-row">
               <div class="control-group">
                 <label for="bWidth">Width</label>
-                <input type="number" id="bWidth" value="10" min="1" max="200" step="0.5" oninput="updatePreview()" />
+                <input type="number" id="bWidth" value="58" min="1" max="200" step="0.5" oninput="updatePreview()" />
               </div>
               <div class="control-group">
                 <label for="bHeight">Height</label>
@@ -539,22 +539,22 @@ const Inventory = () => {
               <div class="control-group">
                 <label>Unit</label>
                 <div class="unit-toggle">
-                  <button id="btn-cm" class="active" onclick="setUnit('cm')">cm</button>
-                  <button id="btn-mm" onclick="setUnit('mm')">mm</button>
+                  <button id="btn-cm" onclick="setUnit('cm')">cm</button>
+                  <button id="btn-mm" class="active" onclick="setUnit('mm')">mm</button>
                 </div>
               </div>
             </div>
           </div>
           <div class="preview-box">
             <div class="preview-label">Preview</div>
-            <img id="previewImg" src="${barcodeUrl}" alt="Barcode" style="width:10cm;" />
+            <img id="previewImg" src="${barcodeUrl}" alt="Barcode" style="width:58mm;" />
             <div class="barcode-number">${item.barcode}</div>
           </div>
           <button id="printBtn" class="print-btn" disabled onclick="window.print()">Loading...</button>
         </div>
         <div class="print-only">
           <div class="print-barcode-wrapper">
-            <img id="printImg" src="${barcodeUrl}" alt="Barcode" style="width:10cm;" />
+            <img id="printImg" src="${barcodeUrl}" alt="Barcode" style="width:58mm;" />
             <div class="print-barcode-number">${item.barcode}</div>
           </div>
         </div>
@@ -575,7 +575,7 @@ const Inventory = () => {
               printBtn.textContent = 'Print Barcode';
             };
           }
-          var currentUnit = 'cm';
+          var currentUnit = 'mm';
           function setUnit(unit) {
             currentUnit = unit;
             document.getElementById('btn-cm').classList.toggle('active', unit === 'cm');
