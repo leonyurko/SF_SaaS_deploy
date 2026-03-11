@@ -425,14 +425,15 @@ const Inventory = () => {
       #__bpo .__bpo_print_only { display: none; }
       @media print {
         @page { size: 62mm auto; margin: 2mm; }
-        #root { display: none !important; }
-        #__bpo {
-          position: static !important; background: white !important;
-          display: block !important; padding: 0 !important; overflow: visible !important;
-        }
-        #__bpo .__bpo_ui { display: none !important; }
+        body * { visibility: hidden !important; }
+        #__bpo .__bpo_print_only,
+        #__bpo .__bpo_print_only * { visibility: visible !important; }
         #__bpo .__bpo_print_only {
-          display: block !important; text-align: center;
+          position: fixed !important;
+          top: 0 !important; left: 0 !important;
+          display: block !important;
+          text-align: center;
+          padding: 2mm;
         }
         #__bpo .__bpo_print_only img { display: block; margin: 0 auto; height: auto; }
         #__bpo .__bpo_print_only .__bpo_num {
