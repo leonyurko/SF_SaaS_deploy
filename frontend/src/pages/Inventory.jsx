@@ -375,12 +375,26 @@ const Inventory = () => {
   };
 
 
-  const printItem = (item) => {
+  const printItem = async (item) => {
     const barcodeUrl = item.barcode_image_url
       ? (item.barcode_image_url.startsWith('http')
           ? item.barcode_image_url
           : window.location.origin + item.barcode_image_url)
       : '';
+
+    // Embed image as base64 so Safari doesn't need to fetch it during print
+    let imgSrc = barcodeUrl;
+    try {
+      const res = await fetch(barcodeUrl);
+      const blob = await res.blob();
+      imgSrc = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      imgSrc = barcodeUrl; // fallback to URL if fetch fails
+    }
 
     const html = `<!DOCTYPE html>
 <html>
@@ -408,7 +422,7 @@ const Inventory = () => {
     .print-only { display: none; }
     @media print {
       @page { margin: 0; }
-      body { margin: 0; padding: 0; background: white; }
+      body { margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .wrap { display: none; }
       .print-only {
         display: block;
@@ -446,13 +460,13 @@ const Inventory = () => {
     </div>
     <div class="card preview">
       <div class="preview-label">Preview</div>
-      <img id="pi" src="${barcodeUrl}" alt="Barcode" style="width:58mm;" />
+      <img id="pi" src="${imgSrc}" alt="Barcode" style="width:58mm;" />
       <div class="barcode-num">${item.barcode}</div>
     </div>
     <button id="pb" class="print-btn" disabled style="background:#ccc;color:white;cursor:not-allowed;">Loading...</button>
   </div>
   <div class="print-only">
-    <img id="pri" src="${barcodeUrl}" alt="Barcode" style="width:58mm;height:auto;" />
+    <img id="pri" src="${imgSrc}" alt="Barcode" style="width:58mm;height:auto;" />
     <div class="barcode-num">${item.barcode}</div>
   </div>
   <script>
