@@ -23,6 +23,7 @@ const Inventory = () => {
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [openRowMenuId, setOpenRowMenuId] = useState(null);
+  const [bulkPrintItems, setBulkPrintItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -513,6 +514,69 @@ const Inventory = () => {
     win.document.close();
   };
 
+  const addToBulkPrint = (item) => {
+    setBulkPrintItems(prev =>
+      prev.find(i => i.id === item.id) ? prev : [...prev, item]
+    );
+  };
+
+  const executeBulkPrint = async () => {
+    const win = window.open('', '_blank');
+    if (!win) { alert('Please allow popups for this site to print.'); return; }
+
+    const toBase64 = async (item) => {
+      const url = item.barcode_image_url
+        ? (item.barcode_image_url.startsWith('http') ? item.barcode_image_url : window.location.origin + item.barcode_image_url)
+        : '';
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve({ ...item, imgSrc: reader.result });
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return { ...item, imgSrc: url };
+      }
+    };
+
+    const items = await Promise.all(bulkPrintItems.map(toBase64));
+
+    const labelsHtml = items.map((item, idx) => `
+      <div class="label${idx < items.length - 1 ? ' break' : ''}">
+        <img src="${item.imgSrc}" alt="${item.barcode}" style="width:58mm;height:auto;display:block;" />
+        <div class="barcode-num">${item.barcode}</div>
+        <div class="item-name">${item.name}</div>
+      </div>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Bulk Print Barcodes</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; }
+    .label { padding: 2mm; }
+    .label.break { page-break-after: always; }
+    .barcode-num { font-weight: bold; font-size: 13px; letter-spacing: 2px; margin-top: 4px; }
+    .item-name { font-size: 11px; color: #444; margin-top: 2px; }
+    @media print {
+      @page { margin: 0; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>${labelsHtml}</body>
+</html>`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => win.print();
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'In Stock': return 'bg-green-100 text-green-800';
@@ -729,6 +793,9 @@ const Inventory = () => {
                                 <button onClick={() => { setOpenRowMenuId(null); printItem(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                                   <i className="fas fa-print text-gray-500 w-4 text-center"></i> Print
                                 </button>
+                                <button onClick={() => { setOpenRowMenuId(null); addToBulkPrint(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 border-b border-gray-100">
+                                  <i className="fas fa-layer-group w-4 text-center"></i> + Bulk Print
+                                </button>
                                 {currentUser?.role === 'Admin' && (
                                   <>
                                     <button onClick={() => { setOpenRowMenuId(null); handleEdit(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
@@ -831,6 +898,9 @@ const Inventory = () => {
                             </button>
                             <button onClick={() => { setOpenRowMenuId(null); printItem(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                               <i className="fas fa-print text-gray-500 w-4 text-center"></i> Print
+                            </button>
+                            <button onClick={() => { setOpenRowMenuId(null); addToBulkPrint(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 border-b border-gray-100">
+                              <i className="fas fa-layer-group w-4 text-center"></i> + Bulk Print
                             </button>
                             {currentUser?.role === 'Admin' && (
                               <>
@@ -1282,6 +1352,37 @@ const Inventory = () => {
                   </div>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Print Tray */}
+      {bulkPrintItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 text-white shadow-2xl px-4 py-3">
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold mb-2 text-gray-300">
+                <i className="fas fa-layer-group mr-2"></i> Bulk Print Queue ({bulkPrintItems.length})
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {bulkPrintItems.map(item => (
+                  <span key={item.id} className="flex items-center gap-1 bg-gray-700 text-white text-xs px-2 py-1 rounded-full">
+                    {item.name}
+                    <button onClick={() => setBulkPrintItems(prev => prev.filter(i => i.id !== item.id))} className="ml-1 text-gray-400 hover:text-white">
+                      <i className="fas fa-times text-xs"></i>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button onClick={() => setBulkPrintItems([])} className="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:bg-gray-700">
+                Clear
+              </button>
+              <button onClick={executeBulkPrint} className="px-5 py-2 bg-brand-red hover:bg-red-700 rounded-lg text-sm font-semibold flex items-center gap-2">
+                <i className="fas fa-print"></i> Print {bulkPrintItems.length} Label{bulkPrintItems.length > 1 ? 's' : ''}
+              </button>
             </div>
           </div>
         </div>
