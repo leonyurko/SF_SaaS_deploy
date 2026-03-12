@@ -22,6 +22,7 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [openRowMenuId, setOpenRowMenuId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -710,23 +711,38 @@ const Inventory = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 font-semibold">{item.current_stock}</td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <button onClick={() => navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`)} className="text-amber-600 hover:text-amber-900" title="Report Wear">
-                          <i className="fas fa-tools"></i>
-                        </button>
-                        <button onClick={() => printItem(item)} className="text-gray-600 hover:text-gray-900" title="Print">
-                          <i className="fas fa-print"></i>
-                        </button>
-                        {currentUser?.role === 'Admin' && (
-                          <>
-                            <button onClick={() => handleEdit(item)} className="text-brand-red hover:text-red-800" title="Edit">
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete">
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </>
-                        )}
+                      <td className="px-6 py-4 text-right">
+                        <div className="relative inline-block">
+                          <button
+                            onClick={() => setOpenRowMenuId(openRowMenuId === item.id ? null : item.id)}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1"
+                          >
+                            Actions <i className="fas fa-chevron-down text-xs"></i>
+                          </button>
+                          {openRowMenuId === item.id && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setOpenRowMenuId(null)} />
+                              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                                <button onClick={() => { setOpenRowMenuId(null); navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                  <i className="fas fa-tools text-amber-500 w-4 text-center"></i> Report Wear
+                                </button>
+                                <button onClick={() => { setOpenRowMenuId(null); printItem(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                  <i className="fas fa-print text-gray-500 w-4 text-center"></i> Print
+                                </button>
+                                {currentUser?.role === 'Admin' && (
+                                  <>
+                                    <button onClick={() => { setOpenRowMenuId(null); handleEdit(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                      <i className="fas fa-edit text-brand-red w-4 text-center"></i> Edit
+                                    </button>
+                                    <button onClick={() => { setOpenRowMenuId(null); handleDelete(item.id); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50">
+                                      <i className="fas fa-trash w-4 text-center"></i> Delete
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -798,23 +814,38 @@ const Inventory = () => {
                     </div>
                   )}
 
-                  <div className="mt-4 flex justify-end gap-3 border-t pt-3">
-                    <button onClick={() => navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`)} className="text-amber-600 p-2" title="Report Wear">
-                      <i className="fas fa-tools"></i>
-                    </button>
-                    <button onClick={() => printItem(item)} className="text-gray-600 p-2" title="Print">
-                      <i className="fas fa-print"></i>
-                    </button>
-                    {currentUser?.role === 'Admin' && (
-                      <>
-                        <button onClick={() => handleEdit(item)} className="text-brand-red p-2" title="Edit">
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button onClick={() => handleDelete(item.id)} className="text-red-600 p-2" title="Delete">
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </>
-                    )}
+                  <div className="mt-4 flex justify-end border-t pt-3">
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenRowMenuId(openRowMenuId === item.id ? null : item.id)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"
+                      >
+                        Actions <i className="fas fa-chevron-down text-xs"></i>
+                      </button>
+                      {openRowMenuId === item.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenRowMenuId(null)} />
+                          <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                            <button onClick={() => { setOpenRowMenuId(null); navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                              <i className="fas fa-tools text-amber-500 w-4 text-center"></i> Report Wear
+                            </button>
+                            <button onClick={() => { setOpenRowMenuId(null); printItem(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                              <i className="fas fa-print text-gray-500 w-4 text-center"></i> Print
+                            </button>
+                            {currentUser?.role === 'Admin' && (
+                              <>
+                                <button onClick={() => { setOpenRowMenuId(null); handleEdit(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                  <i className="fas fa-edit text-brand-red w-4 text-center"></i> Edit
+                                </button>
+                                <button onClick={() => { setOpenRowMenuId(null); handleDelete(item.id); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50">
+                                  <i className="fas fa-trash w-4 text-center"></i> Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
