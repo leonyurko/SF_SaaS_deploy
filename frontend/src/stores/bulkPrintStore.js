@@ -22,9 +22,11 @@ const toBase64 = async (item) => {
 const useBulkPrintStore = create((set, get) => ({
   items: [],
 
-  addItem: (item) => set((state) => ({
-    items: state.items.find(i => i.id === item.id) ? state.items : [...state.items, item]
-  })),
+  addItem: (item) => set((state) => {
+    if (state.items.length >= 8) { alert('Bulk print limit is 8 items.'); return state; }
+    if (state.items.find(i => i.id === item.id)) return state;
+    return { items: [...state.items, item] };
+  }),
 
   removeItem: (itemId) => set((state) => ({
     items: state.items.filter(i => i.id !== itemId)
@@ -38,8 +40,8 @@ const useBulkPrintStore = create((set, get) => ({
 
     const resolved = await Promise.all(get().items.map(toBase64));
 
-    const labelsHtml = resolved.map((item, idx) => `
-      <div class="label${idx < resolved.length - 1 ? ' break' : ''}">
+    const labelsHtml = resolved.map(item => `
+      <div class="label">
         <img src="${item.imgSrc}" alt="${item.barcode}" style="width:58mm;height:auto;display:block;" />
         <div class="barcode-num">${item.barcode}</div>
         <div class="item-name">${item.name}</div>
@@ -53,8 +55,8 @@ const useBulkPrintStore = create((set, get) => ({
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; }
+    .grid { display: flex; flex-wrap: wrap; }
     .label { padding: 2mm; }
-    .label.break { page-break-after: always; }
     .barcode-num { font-weight: bold; font-size: 13px; letter-spacing: 2px; margin-top: 4px; }
     .item-name { font-size: 11px; color: #444; margin-top: 2px; }
     @media print {
@@ -63,7 +65,7 @@ const useBulkPrintStore = create((set, get) => ({
     }
   </style>
 </head>
-<body>${labelsHtml}</body>
+<body><div class="grid">${labelsHtml}</div></body>
 </html>`;
 
     win.document.open();
