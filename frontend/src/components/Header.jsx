@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
+import useBulkPrintStore from '../stores/bulkPrintStore';
 import api from '../services/api';
 
 const Header = ({ pageTitle, toggleSidebar }) => {
   const { user, logout } = useAuthStore();
+  const { items: bulkItems, removeItem: removeBulkItem, clearItems: clearBulk, executePrint } = useBulkPrintStore();
   const navigate = useNavigate();
+  const [showBulkDropdown, setShowBulkDropdown] = useState(false);
+  const bulkDropdownRef = useRef(null);
   const [notifications, setNotifications] = useState({
     outOfStock: [],
     lowStock: [],
@@ -26,6 +30,9 @@ const Header = ({ pageTitle, toggleSidebar }) => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
+      }
+      if (bulkDropdownRef.current && !bulkDropdownRef.current.contains(event.target)) {
+        setShowBulkDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -130,6 +137,63 @@ const Header = ({ pageTitle, toggleSidebar }) => {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Bulk Print Icon */}
+          <div className="relative" ref={bulkDropdownRef}>
+            <button
+              onClick={() => setShowBulkDropdown(prev => !prev)}
+              className="p-2 rounded-full hover:bg-gray-100 relative"
+              title="Bulk Print Queue"
+            >
+              <i className="fas fa-print text-gray-600"></i>
+              {bulkItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs font-bold text-white bg-blue-600 rounded-full ring-2 ring-white">
+                  {bulkItems.length}
+                </span>
+              )}
+            </button>
+
+            {showBulkDropdown && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <i className="fas fa-layer-group text-blue-600"></i> Bulk Print Queue
+                  </h3>
+                  {bulkItems.length > 0 && (
+                    <button onClick={clearBulk} className="text-xs text-red-500 hover:text-red-700">Clear all</button>
+                  )}
+                </div>
+                <div className="max-h-72 overflow-y-auto">
+                  {bulkItems.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                      <i className="fas fa-print text-3xl mb-2 block"></i>
+                      No items in queue
+                    </div>
+                  ) : (
+                    bulkItems.map(item => (
+                      <div key={item.id} className="flex items-center px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+                        <span className="flex-1 truncate text-sm font-medium text-gray-700">{item.name}</span>
+                        <span className="text-xs text-gray-400 font-mono mr-2">{item.barcode}</span>
+                        <button onClick={() => removeBulkItem(item.id)} className="text-gray-400 hover:text-red-500 ml-1">
+                          <i className="fas fa-times text-xs"></i>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {bulkItems.length > 0 && (
+                  <div className="p-3 border-t border-gray-200">
+                    <button
+                      onClick={() => { setShowBulkDropdown(false); executePrint(); }}
+                      className="w-full py-2 bg-brand-red hover:bg-red-700 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
+                    >
+                      <i className="fas fa-print"></i> Print {bulkItems.length} Label{bulkItems.length > 1 ? 's' : ''}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Notification Bell */}
           <div className="relative" ref={dropdownRef}>
             <button
