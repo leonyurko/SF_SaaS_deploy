@@ -21,6 +21,7 @@ const Inventory = () => {
   const [partNumberFilter, setPartNumberFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -524,43 +525,51 @@ const Inventory = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-2xl font-semibold text-gray-900">Inventory Management</h1>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          {currentUser?.role === 'Admin' && (
+        <div className="relative">
+          <button
+            onClick={() => setShowActionsMenu(prev => !prev)}
+            className="bg-brand-red text-white px-5 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 text-base font-semibold shadow"
+          >
+            <i className="fas fa-bolt"></i> Actions
+            <i className={`fas fa-chevron-${showActionsMenu ? 'up' : 'down'} text-xs`}></i>
+          </button>
+
+          {showActionsMenu && (
             <>
-              <button
-                onClick={() => { setWarehouseName(''); setEditingWarehouse(null); setShowWarehouseModal(true); }}
-                className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 flex items-center text-sm flex-1 md:flex-none justify-center"
-              >
-                <i className="fas fa-warehouse mr-2"></i> New Warehouse
-              </button>
-              <button
-                onClick={() => {
-                  setCategoryMode('list');
-                  setCategoryForm({ name: '', description: '', parentId: '' });
-                  setShowCategoryModal(true);
-                }}
-                className="bg-purple-600 text-white px-3 py-2 rounded-md hover:bg-purple-700 flex items-center text-sm flex-1 md:flex-none justify-center"
-              >
-                <i className="fas fa-tags mr-2"></i> Categories
-              </button>
+              {/* backdrop to close on outside click */}
+              <div className="fixed inset-0 z-10" onClick={() => setShowActionsMenu(false)} />
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-20 overflow-hidden">
+                <button
+                  onClick={() => { setShowActionsMenu(false); resetForm(); setShowModal(true); }}
+                  className="w-full flex items-center gap-3 px-5 py-4 text-base font-medium text-gray-800 hover:bg-gray-50 border-b border-gray-100"
+                >
+                  <i className="fas fa-plus text-brand-red w-5 text-center"></i> Add Item
+                </button>
+                <button
+                  onClick={() => { setShowActionsMenu(false); handleExport(); }}
+                  className="w-full flex items-center gap-3 px-5 py-4 text-base font-medium text-gray-800 hover:bg-gray-50 border-b border-gray-100"
+                >
+                  <i className="fas fa-file-csv text-gray-600 w-5 text-center"></i> Export CSV
+                </button>
+                {currentUser?.role === 'Admin' && (
+                  <>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setWarehouseName(''); setEditingWarehouse(null); setShowWarehouseModal(true); }}
+                      className="w-full flex items-center gap-3 px-5 py-4 text-base font-medium text-gray-800 hover:bg-gray-50 border-b border-gray-100"
+                    >
+                      <i className="fas fa-warehouse text-blue-600 w-5 text-center"></i> New Warehouse
+                    </button>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setCategoryMode('list'); setCategoryForm({ name: '', description: '', parentId: '' }); setShowCategoryModal(true); }}
+                      className="w-full flex items-center gap-3 px-5 py-4 text-base font-medium text-gray-800 hover:bg-gray-50"
+                    >
+                      <i className="fas fa-tags text-purple-600 w-5 text-center"></i> Categories
+                    </button>
+                  </>
+                )}
+              </div>
             </>
           )}
-
-          <button
-            onClick={handleExport}
-            className="bg-gray-800 text-white px-3 py-2 rounded-md hover:bg-black flex items-center text-sm flex-1 md:flex-none justify-center"
-          >
-            <i className="fas fa-file-csv mr-2"></i> Export
-          </button>
-          <button
-            onClick={() => {
-              resetForm();
-              setShowModal(true);
-            }}
-            className="bg-brand-red text-white px-4 py-2 rounded-md hover:bg-red-700 flex items-center text-sm flex-1 md:flex-none justify-center"
-          >
-            <i className="fas fa-plus mr-2"></i> Add Item
-          </button>
         </div>
       </div>
 
