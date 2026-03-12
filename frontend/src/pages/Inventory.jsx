@@ -19,6 +19,7 @@ const Inventory = () => {
   const [warehouseFilter, setWarehouseFilter] = useState(searchParams.get('warehouse') || '');
   const [locationFilter, setLocationFilter] = useState(''); // Replaces Shelf/Col
   const [partNumberFilter, setPartNumberFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -69,7 +70,7 @@ const Inventory = () => {
 
   useEffect(() => {
     loadInventory();
-  }, [search, statusFilter, warehouseFilter, locationFilter, partNumberFilter]);
+  }, [search, statusFilter, warehouseFilter, locationFilter, partNumberFilter, categoryFilter]);
 
   const loadWarehouses = async () => {
     try {
@@ -86,9 +87,10 @@ const Inventory = () => {
       const data = await fetchInventory({
         search,
         status: statusFilter,
-        warehouse: warehouseFilter, // Sends ID or Name depending on what user selects/API expects. API now joins.
-        location: locationFilter,   // Sends free text location search
-        partNumber: partNumberFilter
+        warehouse: warehouseFilter,
+        location: locationFilter,
+        partNumber: partNumberFilter,
+        category: categoryFilter
       });
       setInventory(data.items);
     } catch (err) {
@@ -563,7 +565,7 @@ const Inventory = () => {
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <input
             type="text"
             placeholder="Search inventory..."
@@ -583,6 +585,16 @@ const Inventory = () => {
           </select>
           <select
             className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {categories.filter(c => !c.parent_id).map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <select
+            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
             value={warehouseFilter}
             onChange={(e) => setWarehouseFilter(e.target.value)}
           >
@@ -591,7 +603,6 @@ const Inventory = () => {
               <option key={w.id} value={w.id}>{w.name}</option>
             ))}
           </select>
-
           <input
             type="text"
             placeholder="Location..."
