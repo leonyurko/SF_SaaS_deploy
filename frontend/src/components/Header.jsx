@@ -183,7 +183,7 @@ const Header = ({ pageTitle, toggleSidebar }) => {
                 {bulkItems.length > 0 && (
                   <div className="p-3 border-t border-gray-200">
                     <button
-                      onClick={() => { setShowBulkDropdown(false); executePrint(); }}
+                      onClick={() => { const win = window.open('', '_blank'); setShowBulkDropdown(false); executePrint(win); }}
                       className="w-full py-2 bg-brand-red hover:bg-red-700 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
                     >
                       <i className="fas fa-print"></i> Print {bulkItems.length} Label{bulkItems.length > 1 ? 's' : ''}

@@ -34,11 +34,13 @@ const useBulkPrintStore = create((set, get) => ({
 
   clearItems: () => set({ items: [] }),
 
-  executePrint: async () => {
-    const win = window.open('', '_blank');
+  // win must be opened synchronously by the caller before any state changes (Safari requirement)
+  executePrint: async (win) => {
+    if (!win) { win = window.open('', '_blank'); }
     if (!win) { alert('Please allow popups for this site to print.'); return; }
 
     const resolved = await Promise.all(get().items.map(toBase64));
+    const count = resolved.length;
 
     const labelsHtml = resolved.map(item => `
       <div class="label">
@@ -51,27 +53,35 @@ const useBulkPrintStore = create((set, get) => ({
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Bulk Print Barcodes</title>
+  <title>Bulk Print ${count} Barcodes</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; }
-    .grid { display: flex; flex-wrap: wrap; }
-    .label { padding: 2mm; }
-    .barcode-num { font-weight: bold; font-size: 13px; letter-spacing: 2px; margin-top: 4px; }
-    .item-name { font-size: 11px; color: #444; margin-top: 2px; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 24px; display: flex; flex-direction: column; align-items: center; }
+    h2 { font-size: 18px; color: #111; margin-bottom: 20px; align-self: flex-start; max-width: 520px; width: 100%; }
+    .card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.1); margin-bottom: 16px; width: 100%; max-width: 520px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .label { padding: 4px; text-align: left; }
+    .barcode-num { font-weight: bold; font-size: 12px; letter-spacing: 1px; margin-top: 3px; }
+    .item-name { font-size: 10px; color: #555; margin-top: 1px; max-width: 58mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .print-btn { width: 100%; max-width: 520px; padding: 13px; background: #111; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; }
     @media print {
       @page { margin: 0; }
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: white; padding: 2mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; align-items: flex-start; }
+      h2, .print-btn { display: none; }
+      .card { box-shadow: none; padding: 0; border-radius: 0; }
     }
   </style>
 </head>
-<body><div class="grid">${labelsHtml}</div></body>
+<body>
+  <h2>Bulk Print — ${count} Barcode${count > 1 ? 's' : ''}</h2>
+  <div class="card"><div class="grid">${labelsHtml}</div></div>
+  <button class="print-btn" onclick="window.print()">Print ${count} Barcode${count > 1 ? 's' : ''}</button>
+</body>
 </html>`;
 
     win.document.open();
     win.document.write(html);
     win.document.close();
-    win.onload = () => win.print();
   }
 }));
 

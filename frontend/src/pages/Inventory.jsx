@@ -1319,7 +1319,7 @@ const Inventory = () => {
               <button onClick={clearBulkPrint} className="px-4 py-2 rounded-lg border border-gray-600 text-sm hover:bg-gray-700">
                 Clear
               </button>
-              <button onClick={executeBulkPrint} className="px-5 py-2 bg-brand-red hover:bg-red-700 rounded-lg text-sm font-semibold flex items-center gap-2">
+              <button onClick={() => { const win = window.open('', '_blank'); executeBulkPrint(win); }} className="px-5 py-2 bg-brand-red hover:bg-red-700 rounded-lg text-sm font-semibold flex items-center gap-2">
                 <i className="fas fa-print"></i> Print {bulkPrintItems.length} Label{bulkPrintItems.length > 1 ? 's' : ''}
               </button>
             </div>
