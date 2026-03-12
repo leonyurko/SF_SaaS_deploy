@@ -376,6 +376,13 @@ const Inventory = () => {
 
 
   const printItem = async (item) => {
+    // Open window IMMEDIATELY (sync) before any await — Safari blocks window.open() after async gaps
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Please allow popups for this site to print.');
+      return;
+    }
+
     const barcodeUrl = item.barcode_image_url
       ? (item.barcode_image_url.startsWith('http')
           ? item.barcode_image_url
@@ -393,7 +400,7 @@ const Inventory = () => {
         reader.readAsDataURL(blob);
       });
     } catch (e) {
-      imgSrc = barcodeUrl; // fallback to URL if fetch fails
+      imgSrc = barcodeUrl;
     }
 
     const html = `<!DOCTYPE html>
@@ -497,14 +504,9 @@ const Inventory = () => {
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: 'text/html' });
-    const blobUrl = URL.createObjectURL(blob);
-    const win = window.open(blobUrl, '_blank');
-    if (win) {
-      win.addEventListener('load', () => URL.revokeObjectURL(blobUrl));
-    } else {
-      URL.revokeObjectURL(blobUrl);
-    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
   };
 
   const getStatusBadge = (status) => {
