@@ -24,6 +24,17 @@ const Inventory = () => {
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [openRowMenuId, setOpenRowMenuId] = useState(null);
+  const [rowMenuPos, setRowMenuPos] = useState({ top: 0, right: 0 });
+
+  const openRowMenu = (e, itemId) => {
+    if (openRowMenuId === itemId) { setOpenRowMenuId(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const dropdownHeight = 210;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= dropdownHeight ? rect.bottom + 4 : rect.top - dropdownHeight - 4;
+    setRowMenuPos({ top, right: window.innerWidth - rect.right });
+    setOpenRowMenuId(itemId);
+  };
   const { items: bulkPrintItems, addItem: addToBulkPrint, removeItem: removeFromBulkPrint, clearItems: clearBulkPrint, executePrint: executeBulkPrint } = useBulkPrintStore();
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -717,7 +728,7 @@ const Inventory = () => {
                       <td className="px-6 py-4 text-right">
                         <div className="relative inline-block">
                           <button
-                            onClick={() => setOpenRowMenuId(openRowMenuId === item.id ? null : item.id)}
+                            onClick={(e) => openRowMenu(e, item.id)}
                             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1"
                           >
                             Actions <i className="fas fa-chevron-down text-xs"></i>
@@ -725,7 +736,7 @@ const Inventory = () => {
                           {openRowMenuId === item.id && (
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setOpenRowMenuId(null)} />
-                              <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                              <div className="fixed w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden" style={{ top: rowMenuPos.top, right: rowMenuPos.right }}>
                                 <button onClick={() => { setOpenRowMenuId(null); navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                                   <i className="fas fa-tools text-amber-500 w-4 text-center"></i> Report Wear
                                 </button>
@@ -823,7 +834,7 @@ const Inventory = () => {
                   <div className="mt-4 flex justify-end border-t pt-3">
                     <div className="relative">
                       <button
-                        onClick={() => setOpenRowMenuId(openRowMenuId === item.id ? null : item.id)}
+                        onClick={(e) => openRowMenu(e, item.id)}
                         className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"
                       >
                         Actions <i className="fas fa-chevron-down text-xs"></i>
@@ -831,7 +842,7 @@ const Inventory = () => {
                       {openRowMenuId === item.id && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setOpenRowMenuId(null)} />
-                          <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                          <div className="fixed w-44 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden" style={{ top: rowMenuPos.top, right: rowMenuPos.right }}>
                             <button onClick={() => { setOpenRowMenuId(null); navigate(`/wear-equipment?itemId=${item.id}&itemName=${encodeURIComponent(item.name)}`); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                               <i className="fas fa-tools text-amber-500 w-4 text-center"></i> Report Wear
                             </button>
