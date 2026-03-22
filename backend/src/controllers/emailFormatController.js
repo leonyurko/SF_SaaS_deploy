@@ -116,10 +116,44 @@ const deleteFormat = async (req, res, next) => {
   }
 };
 
+/**
+ * Send test email for a format
+ * POST /api/email-formats/:id/test
+ */
+const testFormat = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.user;
+
+    if (!email) {
+      return res.status(400).json({ status: 'error', message: 'Your account has no email address set' });
+    }
+
+    const { sendEmail } = require('../services/emailService');
+
+    const emailContent = await emailFormatService.processFormatTemplate(id, {
+      userName: req.user.username,
+      companyName: process.env.COMPANY_NAME || 'Your Company',
+      supplierName: 'Test Supplier',
+      contactPerson: 'Test Contact',
+      itemName: 'Test Item',
+      quantity: '10',
+      notes: 'This is a test email sent from the Email Formats page.'
+    });
+
+    await sendEmail([email], `[TEST] ${emailContent.subject}`, emailContent.body.replace(/\n/g, '<br>'));
+
+    res.json({ status: 'success', message: `Test email sent to ${email}` });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllFormats,
   getFormatById,
   createFormat,
   updateFormat,
-  deleteFormat
+  deleteFormat,
+  testFormat
 };

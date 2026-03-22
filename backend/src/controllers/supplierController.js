@@ -152,7 +152,7 @@ const sendOrderEmail = async (req, res, next) => {
     // Process email template
     const emailContent = await emailFormatService.processFormatTemplate(formatId, {
       userName,
-      companyName: 'Your Company', // TODO: Add company settings
+      companyName: process.env.COMPANY_NAME || 'Your Company',
       supplierName: supplier.name,
       itemName,
       quantity: quantity || 'N/A',
@@ -161,7 +161,7 @@ const sendOrderEmail = async (req, res, next) => {
     });
 
     // Send email (sendEmail expects an array of recipients)
-    await sendEmail([supplier.email], emailContent.subject, emailContent.body);
+    await sendEmail([supplier.email], emailContent.subject, emailContent.body.replace(/\n/g, '<br>'));
 
     // Create order record
     const order = await supplierService.createSupplierOrder({

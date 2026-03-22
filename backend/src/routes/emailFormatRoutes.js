@@ -22,4 +22,7 @@ router.put('/:id', emailFormatController.updateFormat);
 // Delete email format
 router.delete('/:id', emailFormatController.deleteFormat);
 
+// Send test email
+router.post('/:id/test', emailFormatController.testFormat);
+
 module.exports = router;
