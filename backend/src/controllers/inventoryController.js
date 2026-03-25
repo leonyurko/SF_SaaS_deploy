@@ -228,6 +228,19 @@ const updateStock = async (req, res, next) => {
   }
 };
 
+const regenerateBarcode = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const item = await inventoryService.getInventoryById(id);
+    if (!item) return res.status(404).json({ status: 'error', message: 'Item not found' });
+
+    const updated = await inventoryService.regenerateBarcodeForItem(id, item.location);
+    res.json({ status: 'success', data: { item: updated } });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllInventory,
   getInventoryById,
@@ -235,5 +248,6 @@ module.exports = {
   createInventory,
   updateInventory,
   deleteInventory,
-  updateStock
+  updateStock,
+  regenerateBarcode
 };

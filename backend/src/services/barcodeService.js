@@ -6,23 +6,21 @@ const { query } = require('../config/database');
  * Format: WMS-{LOCATION}-{SEQUENCE}
  */
 const generateBarcode = async (location = 'WH') => {
-  // Get count of existing items to generate sequence
   const result = await query('SELECT COUNT(*) as count FROM inventory');
   const count = parseInt(result.rows[0].count) + 1;
-  
-  // Format: WMS-A-001, WMS-B-002, etc.
-  const sequence = count.toString().padStart(3, '0');
-  const barcode = `WMS-${location.substring(0, 1).toUpperCase()}-${sequence}`;
-  
-  // Check if barcode already exists
-  const existing = await query('SELECT id FROM inventory WHERE barcode = $1', [barcode]);
-  
-  if (existing.rows.length > 0) {
-    // If exists, add timestamp to make it unique
-    return `${barcode}-${Date.now()}`;
+  const prefix = `WMS-${location.substring(0, 1).toUpperCase()}`;
+
+  // Increment sequence until a free slot is found (keeps barcode short and clean)
+  for (let i = 0; i < 10000; i++) {
+    const sequence = (count + i).toString().padStart(3, '0');
+    const barcode = `${prefix}-${sequence}`;
+    const existing = await query('SELECT id FROM inventory WHERE barcode = $1', [barcode]);
+    if (existing.rows.length === 0) return barcode;
   }
-  
-  return barcode;
+
+  // Absolute fallback: short 4-char random suffix (max ~12 chars total)
+  const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${suffix}`;
 };
 
 /**

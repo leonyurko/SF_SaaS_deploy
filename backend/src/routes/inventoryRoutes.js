@@ -48,4 +48,7 @@ router.post(
   inventoryController.updateStock
 );
 
+// Regenerate barcode (Admin only)
+router.post('/:id/regenerate-barcode', requireAdmin, inventoryController.regenerateBarcode);
+
 module.exports = router;

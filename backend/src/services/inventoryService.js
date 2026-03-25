@@ -566,6 +566,20 @@ const getLowStockItems = async () => {
   return result.rows;
 };
 
+const regenerateBarcodeForItem = async (itemId, location) => {
+  const { generateBarcode } = require('./barcodeService');
+  const { generateBothCodes } = require('./codeGeneratorService');
+
+  const barcode = await generateBarcode(location || 'WH');
+  const codeImages = await generateBothCodes(barcode, Date.now().toString());
+
+  const result = await query(
+    `UPDATE inventory SET barcode = $1, barcode_image_url = $2, qr_image_url = $3 WHERE id = $4 RETURNING *`,
+    [barcode, codeImages.barcodeImageUrl, codeImages.qrImageUrl, itemId]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllInventory,
   getInventoryById,
@@ -574,5 +588,6 @@ module.exports = {
   updateInventory,
   deleteInventory,
   updateStock,
-  getLowStockItems
+  getLowStockItems,
+  regenerateBarcodeForItem
 };

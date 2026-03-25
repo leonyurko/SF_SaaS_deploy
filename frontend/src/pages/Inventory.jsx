@@ -527,6 +527,17 @@ const Inventory = () => {
   };
 
 
+  const handleRegenerateBarcode = async (item) => {
+    if (!window.confirm(`Regenerate barcode for "${item.name}"?\n\nThe old barcode will no longer work.`)) return;
+    try {
+      await api.post(`/inventory/${item.id}/regenerate-barcode`);
+      alert('Barcode regenerated successfully.');
+      loadInventory();
+    } catch (err) {
+      alert('Failed to regenerate barcode: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   const printItemTest = async (item) => {
     const win = window.open('', '_blank');
     if (!win) { alert('Please allow popups for this site to print.'); return; }
@@ -876,6 +887,9 @@ const Inventory = () => {
                                     <button onClick={() => { setOpenRowMenuId(null); printItemTest(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 border-b border-gray-100">
                                       <i className="fas fa-flask w-4 text-center"></i> Print_Test
                                     </button>
+                                    <button onClick={() => { setOpenRowMenuId(null); handleRegenerateBarcode(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-purple-600 hover:bg-purple-50 border-b border-gray-100">
+                                      <i className="fas fa-redo w-4 text-center"></i> Redo Barcode
+                                    </button>
                                     <button onClick={() => { setOpenRowMenuId(null); handleEdit(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                                       <i className="fas fa-edit text-brand-red w-4 text-center"></i> Edit
                                     </button>
@@ -984,6 +998,9 @@ const Inventory = () => {
                               <>
                                 <button onClick={() => { setOpenRowMenuId(null); printItemTest(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 border-b border-gray-100">
                                   <i className="fas fa-flask w-4 text-center"></i> Print_Test
+                                </button>
+                                <button onClick={() => { setOpenRowMenuId(null); handleRegenerateBarcode(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-purple-600 hover:bg-purple-50 border-b border-gray-100">
+                                  <i className="fas fa-redo w-4 text-center"></i> Redo Barcode
                                 </button>
                                 <button onClick={() => { setOpenRowMenuId(null); handleEdit(item); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
                                   <i className="fas fa-edit text-brand-red w-4 text-center"></i> Edit
