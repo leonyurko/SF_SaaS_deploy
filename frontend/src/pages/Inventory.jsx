@@ -445,7 +445,7 @@ const Inventory = () => {
     .print-btn { width: 100%; padding: 13px; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .print-only { display: none; }
     @media print {
-      @page { margin: 0; }
+      @page { size: 62mm auto; margin: 0; }
       body { margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .wrap { display: none; }
       .print-only {
@@ -582,7 +582,7 @@ const Inventory = () => {
     .print-btn { width: 100%; padding: 13px; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .print-only { display: none; }
     @media print {
-      @page { margin: 0; }
+      @page { size: 62mm auto; margin: 0; }
       body { margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .wrap { display: none; }
       .print-only {
