@@ -114,8 +114,11 @@ const Scanner = () => {
         cameraId,
         {
           fps: 10,
-          qrbox: { width: 300, height: 120 },
-          aspectRatio: 1.7778
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const edgeSize = Math.floor(minEdge * 0.8);
+            return { width: edgeSize, height: edgeSize };
+          }
         },
         onScanSuccess,
         onScanFailure
